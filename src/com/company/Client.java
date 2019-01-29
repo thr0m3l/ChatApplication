@@ -32,7 +32,27 @@ public class Client implements Runnable{
 
 //                objectOutputStream.writeObject(msg);
 //                objectOutputStream.flush();
+                while (socket.isConnected()){
+                    Message msg = null;
+                    LMessage lmsg = null;
+                    try{
+                        msg = (Message) objectInputStream.readObject();
 
+                        if(msg != null){
+                            if(msg.getUser().equals("server")){
+                                if(msg.getMsg().equals("Login done")){
+                                    System.out.println("Login successful");
+                                    Main.isLoggedIn = true;
+                                } else {
+                                    System.err.println("Login Failed");
+                                }
+                            }
+                        }
+
+                    } catch (java.lang.ClassNotFoundException e){
+                        e.printStackTrace();
+                    }
+                }
 
             } catch (IOException e){
                 System.err.println("Couldn't connect to the server");
