@@ -5,10 +5,12 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Server {
     private static final int PORT = 8818;
     private static final ArrayList<User> users = new ArrayList<>();
+    private static final HashMap<User, ObjectOutputStream> oos = new HashMap<>();
     private static ServerSocket listener;
     public static void main(String[] args) {
         System.out.println("The chat server is running");
@@ -58,32 +60,34 @@ public class Server {
                 objectOutputStream = new ObjectOutputStream(outputStream);
                 objectInputStream = new ObjectInputStream(inputStream);
 
+                System.out.println("User connected!");
+
                 while (socket.isConnected()){
-                    LMessage lMessage = null;
-                    lMessage = (LMessage) objectInputStream.readObject();
-                    if(lMessage!=null){
-                        boolean found = false;
-                        for(User user : users){
-                            if(lMessage.getUserName().equals(user.getUserName()) &&
-                            lMessage.getPassword().equals(user.getPassword()) &&
-                            lMessage.getUserType().equals(user.getUserType())){
-                                objectOutputStream.writeObject(new Message("Login done","server"));
-                                found = true;
-                            }
-                        }
-                        if(!found){
-                            objectOutputStream.writeObject(new Message("Login failed","server"));
-                        }
-                    }
 
 
-
+                    //Message Processing
 
                     Message message = null;
                     message = (Message) objectInputStream.readObject();
 
                     if(message != null){
-                        System.out.println(message.getUser() + " : " + message.getMsg());
+                        String[] tokens = message.getMsg().split("#");
+                        if(tokens[0].equals("L")){
+                            LMessage lMessage = new LMessage(tokens[1],tokens[2],tokens[3]);
+                            boolean loggedIn = handleLogin(lMessage);
+                            Message msg = new Message();
+                            msg.setUser(new User("server"));
+
+                            if(loggedIn){
+                                msg.setMsg("Login done");
+                            } else{
+                                msg.setMsg("Login failed");
+                            }
+
+                            objectOutputStream.writeObject(msg);
+                        } else if (tokens[0].equals("B")){
+
+                        }
                     }
 
 
@@ -93,6 +97,24 @@ public class Server {
             } catch (java.lang.ClassNotFoundException e1){
                 e1.printStackTrace();
             }
+        }
+
+        public boolean handleLogin (LMessage lMessage){
+            boolean isFound = false;
+
+            for(User user : users){
+                if(user.getUserName().equals(lMessage.getUserName()) &&
+                    user.getPassword().equals(lMessage.getPassword()) &&
+                user.getUserType().equals(lMessage.getUserType())){
+                    isFound = true;
+                    oos.put(user,objectOutputStream);
+                }
+            }
+
+            return isFound;
+        }
+        public void sendTo (CMessage cMessage){
+            
         }
     }
 }

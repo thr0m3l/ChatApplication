@@ -39,10 +39,11 @@ public class Client implements Runnable{
                         msg = (Message) objectInputStream.readObject();
 
                         if(msg != null){
-                            if(msg.getUser().equals("server")){
+                            if(msg.getUser().getUserType().equals("server")){
                                 if(msg.getMsg().equals("Login done")){
                                     System.out.println("Login successful");
                                     Main.isLoggedIn = true;
+                                    Main.user = (User) objectInputStream.readObject();
                                 } else {
                                     System.err.println("Login Failed");
                                 }

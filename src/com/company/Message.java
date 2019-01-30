@@ -9,14 +9,14 @@ enum MessageType{
 public class Message implements Serializable {
     private static final long serialVersionUID = 2L;
     private String msg = null;
-    private String user = null;
+    private User user = null;
     private MessageType messageType = null;
 
     public Message(){
 
     }
 
-    public Message(String msg, String user) {
+    public Message(String msg, User user) {
         this.msg = msg;
         this.user = user;
     }
@@ -29,11 +29,11 @@ public class Message implements Serializable {
         this.msg = msg;
     }
 
-    public String getUser() {
+    public User getUser() {
         return user;
     }
 
-    public void setUser(String user) {
+    public void setUser(User user) {
         this.user = user;
     }
 

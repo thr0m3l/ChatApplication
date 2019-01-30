@@ -1,13 +1,20 @@
 package com.company;
 
-public class User {
+import java.io.Serializable;
+
+public class User implements Serializable {
     String userName;
     String password;
     String userType;
+    private static final long serialVersionUID = 3L;
 
     public User(String userName, String password, String userType) {
         this.userName = userName;
         this.password = password;
+        this.userType = userType;
+    }
+
+    public User(String userType) {
         this.userType = userType;
     }
 

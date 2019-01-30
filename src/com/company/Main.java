@@ -1,11 +1,12 @@
 package com.company;
 
+import java.io.Serializable;
 import java.util.Scanner;
 
 public class Main {
 
     public static boolean isLoggedIn = false;
-    private static String userName = "r0m3l";
+    public static User user = null;
 
     public static void main(String[] args) {
         Client client = new Client("localhost",8818);
@@ -17,10 +18,12 @@ public class Main {
         while (!isLoggedIn){
             System.out.println("Message Format: L#UserName#Password#UserType");
             String input = scanner.nextLine();
-            String[] tokens = input.split("#");
+//            String[] tokens = input.split("#");
+            Message msg = new Message();
+            msg.setMsg(input);
 
-            LMessage lmsg = new LMessage(tokens[1],tokens[2],tokens[3]);
-            client.send(lmsg);
+//            LMessage lmsg = new LMessage(tokens[1],tokens[2],tokens[3]);
+            client.send(msg);
             try{
                 Thread.sleep(100);
             } catch (InterruptedException e){
@@ -31,9 +34,20 @@ public class Main {
         }
 
         while (isLoggedIn){
-            System.out.println("Write a message to a server: ");
+            System.out.println("Write a message to the server: ");
             String msg = scanner.nextLine();
-            Message message = new Message(msg,userName);
+            String[] tokens = msg.split("#");
+            if(tokens[0].equals("B")){
+                if(user.getUserType().equals("admin")){
+                    BMessage bmsg = new BMessage();
+                    bmsg.setMsg(tokens[1]);
+                    bmsg.setUser(user);
+
+                }
+            } else if(tokens[0].equals("C")){
+
+            }
+            Message message = new Message(msg,user);
             client.send(message);
 
 
