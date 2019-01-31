@@ -55,7 +55,9 @@ public class Client implements Runnable{
                                 } else if(msg.getMsg().equals("C Message")){
                                     System.out.println("Receiving CMessage...");
                                     CMessage cMessage = (CMessage)objectInputStream.readObject();
-                                    handleCMessage(cMessage);
+//                                    handleCMessage(cMessage);
+                                    System.out.println(cMessage.getUser().getUserName() + " : " + cMessage.getMsg());
+
                                 } else{
                                     System.out.println(msg.getMsg());
                                 }

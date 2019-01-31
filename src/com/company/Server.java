@@ -20,6 +20,7 @@ public class Server {
         users.add(new User("r0m3l","1234","admin"));
         users.add(new User("tanzim","1234","admin"));
         users.add(new User("hossain","1234","user"));
+        users.add(new User("itachi","uchiha","user"));
 
         try{
             listener = new ServerSocket(PORT);
@@ -101,17 +102,20 @@ public class Server {
                         } else if(tokens[0].equals("S")){
                             handleSMessage(tokens[1]);
                         } else if(tokens[0].equals("C")){
-                            Message newMsg = new Message();
 
-                            newMsg.setUser(new User("server"));
-                            newMsg.setMsg("C Message");
-                            objectOutputStream.writeObject(newMsg);
                             CMessage cMessage = new CMessage();
                             cMessage.setRecipient(tokens[1]);
-                            cMessage.setFileName(tokens[3]);
+//                            cMessage.setFileName(tokens[3]);
                             cMessage.setMsg(tokens[2]);
-                            objectOutputStream.writeObject(cMessage);
-                            handleCMessage();
+                            cMessage.setUser(currentUser);
+//                            objectOutputStream.writeObject(cMessage);
+//                            handleCMessage();
+                            sendTo(cMessage);
+
+
+                            //Test code
+
+
                         }
                     }
 
@@ -154,10 +158,31 @@ public class Server {
                 }
             }
         }
+
+        public void sendTo(CMessage cMessage) throws IOException{
+            boolean found = false;
+
+            for(User user : oos.keySet()){
+                if(user.getUserName().equals(cMessage.getRecipient())){
+                    Message newMsg = new Message();
+                    newMsg.setUser(new User("server"));
+                    newMsg.setMsg("C Message");
+                    oos.get(user).writeObject(newMsg);
+                    oos.get(user).writeObject(cMessage);
+                    found = true;
+                    break;
+                }
+            }
+            if(!found){
+                cMessage.setMsg("Recipient not online");
+            }
+
+
+        }
         public void handleBMessage (String s) throws IOException{
             Message msg = new Message();
             msg.setMsg(currentUser.getUserName() + " : " + s );
-            msg.setUser(currentUser);
+            msg.setUser(new User("server"));
             if(currentUser.getUserType().equals("admin")){
                 Set<User> userSet = oos.keySet();
                 for(User user: userSet){
@@ -167,7 +192,8 @@ public class Server {
                 }
 
             } else if(currentUser.getUserType().equals("user")){
-                msg.setMsg("Can't send BMessage");
+                msg.setUser(new User("server"));
+                msg.setMsg("Can't send BMessage, you must be an admin to send BMessage");
                 objectOutputStream.writeObject(msg);
             }
         }
@@ -182,6 +208,10 @@ public class Server {
                     objectOutputStream.writeObject(msg);
                 }
             } else if(s.equals("logout")){
+                Message bidayPitibi = new Message();
+                bidayPitibi.setUser(new User("server"));
+                bidayPitibi.setMsg(currentUser.getUserName() + " logged off!");
+
                 users.remove(currentUser);
                 oos.remove(currentUser,oos.get(currentUser));
 //                currentUser = null;

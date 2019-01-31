@@ -1,6 +1,5 @@
 package com.company;
 
-import java.io.Serializable;
 import java.util.Scanner;
 
 public class Main {
@@ -36,7 +35,6 @@ public class Main {
         while (isLoggedIn){
 //            System.out.println("Write a message to the server: ");
             String msg = scanner.nextLine();
-
             Message message = new Message(msg,user);
             client.send(message);
         }
