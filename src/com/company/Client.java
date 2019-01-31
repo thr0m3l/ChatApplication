@@ -1,5 +1,7 @@
 package com.company;
 
+import sun.misc.IOUtils;
+
 import java.io.*;
 import java.net.Socket;
 
@@ -36,7 +38,12 @@ public class Client implements Runnable{
                     Message msg = null;
                     LMessage lmsg = null;
                     try{
-                        msg = (Message) objectInputStream.readObject();
+                        try{
+                            msg = (Message) objectInputStream.readObject();
+                        } catch (EOFException eof){
+                            System.err.println("Logged out");
+                            break;
+                        }
 
                         if(msg != null){
                             if(msg.getUser().getUserType().equals("server")){
@@ -44,9 +51,15 @@ public class Client implements Runnable{
                                     System.out.println("Login successful");
                                     Main.isLoggedIn = true;
                                     Main.user = (User) objectInputStream.readObject();
-                                } else {
-                                    System.err.println("Login Failed");
+                                    System.out.println(Main.user.getUserName());
+                                } else if(msg.getMsg().equals("C Message")){
+                                    System.out.println("Receiving CMessage...");
+                                    CMessage cMessage = (CMessage)objectInputStream.readObject();
+                                    handleCMessage(cMessage);
+                                } else{
+                                    System.out.println(msg.getMsg());
                                 }
+
                             }
                         }
 
@@ -59,6 +72,34 @@ public class Client implements Runnable{
                 System.err.println("Couldn't connect to the server");
                 e.printStackTrace();
             }
+    }
+
+    private void handleCMessage(CMessage cMessage) {
+        File file = new File(cMessage.getFileName());
+        try{
+            FileInputStream fis = new FileInputStream(file);
+            byte[] bytes = new byte[(int)file.length()];
+            DataInputStream dis = new DataInputStream(fis);
+
+            try{
+                dis.readFully(bytes);
+                dis.close();
+            } catch (IOException e){
+                System.err.println("Unable to convert the file to byte array");
+            }
+
+            cMessage.setFile(bytes);
+
+            try{
+                objectOutputStream.writeObject(cMessage);
+            } catch (IOException e){
+                System.err.println("Unable to send CMessage");
+                e.printStackTrace();
+            }
+
+        } catch (FileNotFoundException fnf){
+            System.err.println("File not found");
+        }
     }
 
     public  <T extends Message> void send(T message){

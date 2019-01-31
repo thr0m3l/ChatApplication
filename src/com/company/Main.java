@@ -34,24 +34,11 @@ public class Main {
         }
 
         while (isLoggedIn){
-            System.out.println("Write a message to the server: ");
+//            System.out.println("Write a message to the server: ");
             String msg = scanner.nextLine();
-            String[] tokens = msg.split("#");
-            if(tokens[0].equals("B")){
-                if(user.getUserType().equals("admin")){
-                    BMessage bmsg = new BMessage();
-                    bmsg.setMsg(tokens[1]);
-                    bmsg.setUser(user);
 
-                }
-            } else if(tokens[0].equals("C")){
-
-            }
             Message message = new Message(msg,user);
             client.send(message);
-
-
-
         }
     }
 }

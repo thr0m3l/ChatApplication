@@ -18,6 +18,9 @@ public class User implements Serializable {
         this.userType = userType;
     }
 
+    public User() {
+    }
+
     public String getUserName() {
         return userName;
     }

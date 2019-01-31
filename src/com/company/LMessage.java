@@ -10,6 +10,7 @@ public class LMessage extends Message {
         this.password = password;
         this.userType = userType;
         super.setMessageType(MessageType.LMessage);
+        super.setUser(new User(userName,password,userType));
     }
 
     public String getUserName() {
