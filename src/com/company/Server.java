@@ -7,13 +7,13 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Set;
 
 public class Server {
     private static final int PORT = 8818;
-    private static final ArrayList<User> users = new ArrayList<>();
-    private static final HashMap<User, ObjectOutputStream> oos = new HashMap<>();
+    private static ArrayList<User> users = new ArrayList<>();
+    private static HashMap<User, ObjectOutputStream> oos = new HashMap<>();
+    private static ArrayList<String> onlineUsers = new ArrayList<>();
     private static ServerSocket listener;
     public static void main(String[] args) {
         System.out.println("The chat server is running");
@@ -98,19 +98,38 @@ public class Server {
                             objectOutputStream.writeObject(msg);
                             objectOutputStream.writeObject(currentUser);
                         } else if (tokens[0].equals("B")){
-                            handleBMessage(tokens[1]);
+                            BMessage bMessage = new BMessage();
+                            bMessage.setMsg(tokens[1]);
+                            handleBMessage(bMessage);
                         } else if(tokens[0].equals("S")){
-                            handleSMessage(tokens[1]);
+                            SMessage sMessage = new SMessage();
+                            sMessage.setMsg(tokens[1]);
+                            handleSMessage(sMessage);
                         } else if(tokens[0].equals("C")){
 
+
                             CMessage cMessage = new CMessage();
+
+                            if(tokens.length == 4){
+                                cMessage.setFileName(tokens[3]);
+                            }
                             cMessage.setRecipient(tokens[1]);
 //                            cMessage.setFileName(tokens[3]);
                             cMessage.setMsg(tokens[2]);
                             cMessage.setUser(currentUser);
 //                            objectOutputStream.writeObject(cMessage);
 //                            handleCMessage();
-                            sendTo(cMessage);
+                            if(tokens.length == 3) sendTo(cMessage);
+
+                            if(tokens.length == 4){
+                                Message msg = new Message();
+                                msg.setUser(new User("server"));
+                                msg.setMsg("C Message");
+                                objectOutputStream.writeObject(msg);
+                                objectOutputStream.writeObject(cMessage);
+                                cMessage = (CMessage) objectInputStream.readObject();
+                                sendTo(cMessage);
+                            }
 
 
                             //Test code
@@ -137,27 +156,14 @@ public class Server {
                     System.out.println(lMessage.getUser().getUserName());
                     oos.put(lMessage.getUser(),objectOutputStream);
                     tempUser = user;
+                    onlineUsers.add(lMessage.getUser().getUserName());
                     break;
                 }
             }
             return tempUser;
 
         }
-        public void handleCMessage() throws IOException{
-            System.out.println("sending CMessage to recipient");
-            CMessage cMessage = null;
-            try{
-                cMessage = (CMessage) objectInputStream.readObject();
-            } catch (ClassNotFoundException cnf){
-                cnf.printStackTrace();
-            }
 
-            for(User user : oos.keySet()){
-                if(user.getUserName().equals(cMessage.getRecipient())){
-                    oos.get(user).writeObject(cMessage);
-                }
-            }
-        }
 
         public void sendTo(CMessage cMessage) throws IOException{
             boolean found = false;
@@ -179,9 +185,9 @@ public class Server {
 
 
         }
-        public void handleBMessage (String s) throws IOException{
+        public void handleBMessage (BMessage bMessage) throws IOException{
             Message msg = new Message();
-            msg.setMsg(currentUser.getUserName() + " : " + s );
+            msg.setMsg(currentUser.getUserName() + " : " + bMessage.getMsg() );
             msg.setUser(new User("server"));
             if(currentUser.getUserType().equals("admin")){
                 Set<User> userSet = oos.keySet();
@@ -197,20 +203,26 @@ public class Server {
                 objectOutputStream.writeObject(msg);
             }
         }
-        public void handleSMessage(String s) throws IOException{
+        public void handleSMessage(SMessage sMessage) throws IOException{
             Message msg = new Message();
             msg.setUser(new User("server"));
             msg.setMsg("Active users: ");
-            if(s.equals("show")){
-                for(User user: oos.keySet()){
-                    msg.setMsg(user.getUserName());
+            if(sMessage.getMsg().equals("show")){
+                Message showMessage = new Message();
+                showMessage.setUser(new User("server"));
+                showMessage.setMsg("Active users: ");
+                objectOutputStream.writeObject(showMessage);
+
+                for(String string : onlineUsers){
+                    msg.setMsg(string);
                     msg.setUser(new User("server"));
                     objectOutputStream.writeObject(msg);
                 }
-            } else if(s.equals("logout")){
-                Message bidayPitibi = new Message();
-                bidayPitibi.setUser(new User("server"));
-                bidayPitibi.setMsg(currentUser.getUserName() + " logged off!");
+            } else if(sMessage.getMsg().equals("logout")){
+                BMessage bMessage = new BMessage();
+                bMessage.setMsg("Logging out");
+                bMessage.setUser(currentUser);
+                handleBMessage(bMessage);
 
                 users.remove(currentUser);
                 oos.remove(currentUser,oos.get(currentUser));
@@ -220,7 +232,6 @@ public class Server {
                 objectInputStream.close();
                 inputStream.close();
                 outputStream.close();
-
             }
         }
     }

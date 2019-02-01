@@ -1,7 +1,5 @@
 package com.company;
 
-import sun.misc.IOUtils;
-
 import java.io.*;
 import java.net.Socket;
 
@@ -30,13 +28,8 @@ public class Client implements Runnable{
                 inputStream = socket.getInputStream();
                 objectInputStream = new ObjectInputStream(inputStream);
 
-//                Message msg = new Message("Hello", "r0m3l");
-
-//                objectOutputStream.writeObject(msg);
-//                objectOutputStream.flush();
                 while (socket.isConnected()){
                     Message msg = null;
-                    LMessage lmsg = null;
                     try{
                         try{
                             msg = (Message) objectInputStream.readObject();
@@ -46,19 +39,36 @@ public class Client implements Runnable{
                         }
 
                         if(msg != null){
+                            CMessage cMessage = null;
                             if(msg.getUser().getUserType().equals("server")){
                                 if(msg.getMsg().equals("Login done")){
                                     System.out.println("Login successful");
                                     Main.isLoggedIn = true;
                                     Main.user = (User) objectInputStream.readObject();
-                                    System.out.println(Main.user.getUserName());
                                 } else if(msg.getMsg().equals("C Message")){
-                                    System.out.println("Receiving CMessage...");
-                                    CMessage cMessage = (CMessage)objectInputStream.readObject();
+
+                                    cMessage = (CMessage)objectInputStream.readObject();
 //                                    handleCMessage(cMessage);
-                                    System.out.println(cMessage.getUser().getUserName() + " : " + cMessage.getMsg());
+                                    if(!cMessage.getUser().getUserName().equals(Main.user.getUserName())){
+                                        System.out.println("Receiving CMessage...");
+                                        System.out.println(cMessage.getUser().getUserName() + " : " + cMessage.getMsg());
+                                        if(cMessage.getFile() != null){
+                                            System.out.println("Receiving " + cMessage.getFileName() + " from " + cMessage.getUser().getUserName());
+                                            try (FileOutputStream fos = new FileOutputStream(cMessage.getFileName())) {
+                                                fos.write(cMessage.getFile());
+                                            }
+                                        }
+                                    }
+
+                                    if(cMessage.getFileName() != null && cMessage.getFile()  == null){
+                                        System.out.println("Sending file: " + cMessage.getFileName());
+                                        handleCMessage(cMessage);
+                                    }
+
+
 
                                 } else{
+
                                     System.out.println(msg.getMsg());
                                 }
 

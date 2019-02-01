@@ -17,11 +17,9 @@ public class Main {
         while (!isLoggedIn){
             System.out.println("Message Format: L#UserName#Password#UserType");
             String input = scanner.nextLine();
-//            String[] tokens = input.split("#");
             Message msg = new Message();
             msg.setMsg(input);
 
-//            LMessage lmsg = new LMessage(tokens[1],tokens[2],tokens[3]);
             client.send(msg);
             try{
                 Thread.sleep(100);
